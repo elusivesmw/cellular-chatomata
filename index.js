@@ -1,5 +1,3 @@
-const { getDecorators } = require('typescript');
-
 var charm = require('charm')();
 charm.pipe(process.stdout);
 charm.reset();
@@ -8,7 +6,8 @@ charm.reset();
 var colors = [ 'black', 'green' ];
 
 const rows = 40;
-const cols = 40;
+const cols = 80;
+const wrapping = true;
 
 var board = Array(rows).fill('0'.repeat(cols));
 
@@ -43,7 +42,28 @@ const gliderGun = [
     '00000000000010001000000000000000000000',
     '00000000000001100000000000000000000000',
     '00000000000000000000000000000000000000'
-]
+];
+
+const growthPattern = [
+    '0000000000',
+    '0000000100',
+    '0000010110',
+    '0000010100',
+    '0000010000',
+    '0001000000',
+    '0101000000',
+    '0000000000'
+];
+
+const growthPattern2 = [
+    '0000000',
+    '0111010',
+    '0100000',
+    '0000110',
+    '0011010',
+    '0101010',
+    '0000000'
+];
 
 function addShape(shape, bx, by) {
     if (shape.length > rows) return;
@@ -60,7 +80,6 @@ function addShape(shape, bx, by) {
         }
     }
 }
-
 
 
 let stateChanges = [];
@@ -80,7 +99,7 @@ function updateState() {
                     case 0:
                     case 1:
                         // underpopulation
-                        let up = { y: y, x: x, val: 0 };
+                        let up = { x: x, y: y, val: 0 };
                         stateChanges.push(up);
                         //board[y, x] = 0; 
                         break;
@@ -95,7 +114,7 @@ function updateState() {
                     case 7:
                     case 8:
                         // overpopulation
-                        let op = { y: y, x: x, val: 0 };
+                        let op = { x: x, y: y, val: 0 };
                         stateChanges.push(op);
                         //board[y, x] = 0; 
                         break;
@@ -103,7 +122,7 @@ function updateState() {
             } else { // dead
                 if (neighborCount === 3) {
                     // reproduction
-                    let rp = { y: y, x: x, val: 1 };
+                    let rp = { x: x, y: y, val: 1 };
                     stateChanges.push(rp);
                     //board[y, x] = 1; 
 
@@ -138,18 +157,20 @@ function getNeighbors(x, y) {
 function getRelativeState(x, y) {
     x = wrap(x, cols);
     y = wrap(y, rows);
-    let state = getState(x, y);
+    if (x === null || y === null) return 0; // if no wrapping, consider out of bounds cell as dead
 
+    let state = getState(x, y);
+    
     return state;
 }
 
-function wrap(val, max) {
-    if (val >= max) {
-        return 0;
-    } else if (val < 0) {
-        return max - 1;
+function wrap(pos, max) {
+    if (pos >= max) {
+        return wrapping ? 0 : null;
+    } else if (pos < 0) {
+        return wrapping ? max - 1 : null;
     }
-    return val;
+    return pos;
 }
 
 function updateBoard() {
@@ -172,11 +193,86 @@ function updateBoard() {
 }
 
 //addShape(glider, 0, 0);
-addShape(gliderGun, 0, 0);
+//addShape(gliderGun, 0, 0);
+addShape(growthPattern2, 15, 15);
+
+
+
+
+
+
+
+
+const WebSocketClient = require('websocket').client;
+const client = new WebSocketClient();
+const token = "";
+const username = "";
+const channel = "";
+
+
+
+client.on('connect', function(connection) {
+    //console.log('WebSocket Client Connected');
+    // Send CAP (optional), PASS, and NICK messages
+    connection.sendUTF('CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands');
+    connection.sendUTF('PASS oauth:' + token);
+    connection.sendUTF('NICK ' + username);
+
+    connection.sendUTF(`JOIN #${channel},#${channel}`);
+
+
+
+
+    connection.on('error', function(error) {
+        wswrite("Connection Error: " + error.toString());
+    });
+    connection.on('close', function() {
+        wswrite('echo-protocol Connection Closed');
+    });
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            wswrite("Received: '" + message.utf8Data + "'");
+
+            addShape(glider, 0, 0);
+        }
+    });
+
+    function sendMessage(msg) {
+        connection.sendUTF(`PRIVMSG #${channel} :${msg}`);
+    }
+    
+});
+
+client.on('connectFailed', function(error) {
+    wswrite('Connect Error: ' + error.toString());
+});
+
+
+client.connect('ws://irc-ws.chat.twitch.tv:80');
+
+function wswrite(msg){
+    charm.position(0, rows + 2);
+
+    charm
+    .foreground('white')
+    .write(msg)
+    .erase('down');
+        
+    charm.position(0, 0);
+}
+
+
+
 
 
 var iv = setInterval(function () {
     updateState();
     updateBoard();
 
-}, 100);
+}, 50);
+
+
+
+
+
+
