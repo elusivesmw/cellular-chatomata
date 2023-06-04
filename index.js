@@ -7,43 +7,58 @@ charm.reset();
              // dead   alive
 var colors = [ 'black', 'green' ];
 
-
-
-const rows = 20;
+const rows = 40;
 const cols = 40;
 
-var board = [];
-function clearBoard(size) { 
-    for (let y = 0; y < rows; ++y) {
-        board[y] = [];
-        for (let x = 0; x < cols; ++x) {
-            board[y][x] = 0;
+var board = Array(rows).fill('0'.repeat(cols));
+
+function getState(x, y) {
+    let char = board[y].charAt(x);
+    return parseInt(char);
+}
+
+function setState(x, y, val) {
+    let row = board[y];
+    let chars = [...row];
+    chars[x] = val;
+    board[y] = chars.join('');
+}
+
+// shapes
+const glider = [
+    '001',
+    '101',
+    '011'
+];
+
+const gliderGun = [
+    '00000000000000000000000000000000000000',
+    '00000000000000000000000001000000000000',
+    '00000000000000000000000101000000000000',
+    '00000000000001100000011000000000000110',
+    '00000000000010001000011000000000000110',
+    '01100000000100000100011000000000000000',
+    '01100000000100010110000101000000000000',
+    '00000000000100000100000001000000000000',
+    '00000000000010001000000000000000000000',
+    '00000000000001100000000000000000000000',
+    '00000000000000000000000000000000000000'
+]
+
+function addShape(shape, bx, by) {
+    if (shape.length > rows) return;
+    // assume rows have same col length
+    if (shape[0].length > cols) return;
+
+    for (let r = 0; r < shape.length; ++r) {
+        let sr = shape[r];
+
+        for (let c = 0; c < sr.length; ++c) {
+            let char = sr[c];
+            // need to handle wrapping
+            setState(bx + c, by + r, char);
         }
     }
-}
-
-// shape
-// 0 0 1
-// 1 0 1
-// 0 1 1 
-function initGlider() {
-    board[0][2] = 1;
-
-    board[1][0] = 1;
-    board[1][2] = 1;
-
-    board[2][1] = 1;
-    board[2][2] = 1;
-}
-
-
-function initGliderGun() {
-    board[5][1] = 1;
-    board[5][2] = 1;
-    board[6][1] = 1;
-    board[6][2] = 1;
-
-    
 }
 
 
@@ -53,8 +68,8 @@ let stateChanges = [];
 function updateState() {
     for (let y = 0; y < rows; ++y) {
         for (let x = 0; x < cols; ++x) {
-            let state = board[y][x];
-            let neighborCount = getNeighbors(y, x);
+            let state = getState(x, y);
+            let neighborCount = getNeighbors(x, y);
 
             // if (neighborCount > 0) {
             //     console.log(`y = ${y},  x = ${x},  neighbors = ${neighborCount}`);
@@ -104,46 +119,43 @@ function updateState() {
 // 0 0 0
 // 0 X 0
 // 0 0 0
-function getNeighbors(y, x) {
+function getNeighbors(x, y) {
     let count = 0;
-    count += getRelativeState(y - 1, x - 1);
-    count += getRelativeState(y - 1, x);
-    count += getRelativeState(y - 1, x + 1);
+    count += getRelativeState(x - 1, y - 1);
+    count += getRelativeState(x    , y - 1);
+    count += getRelativeState(x + 1, y - 1);
 
-    count += getRelativeState(y, x - 1);
-    count += getRelativeState(y, x + 1);
+    count += getRelativeState(x - 1, y);
+    count += getRelativeState(x + 1, y);
 
-    count += getRelativeState(y + 1, x - 1);
-    count += getRelativeState(y + 1, x);
-    count += getRelativeState(y + 1, x + 1);
+    count += getRelativeState(x - 1, y + 1);
+    count += getRelativeState(x    , y + 1);
+    count += getRelativeState(x + 1, y + 1);
     
     return count;
 }
 
-function getRelativeState(y, x) {
-    // wrap y
-    if (y >= rows) {
-        y = 0;
-    } else if (y < 0) {
-        y = rows - 1;
-    }
+function getRelativeState(x, y) {
+    x = wrap(x, cols);
+    y = wrap(y, rows);
+    let state = getState(x, y);
 
-    // wrap x
-    if (x >= cols) {
-        x = 0;
-    } else if (x < 0) {
-        x = cols - 1;
-    }
-
-    let state = board[y][x];
-    //console.log(`y = ${y},  x = ${x}`);
     return state;
+}
+
+function wrap(val, max) {
+    if (val >= max) {
+        return 0;
+    } else if (val < 0) {
+        return max - 1;
+    }
+    return val;
 }
 
 function updateBoard() {
     // make the changes to the board
     for (let sc of stateChanges) {
-        board[sc.y][sc.x] = sc.val;
+        setState(sc.x, sc.y, sc.val);
         // and draw
         var color = colors[sc.val];
         charm
@@ -159,8 +171,8 @@ function updateBoard() {
     stateChanges = [];
 }
 
-clearBoard();
-initGlider();
+//addShape(glider, 0, 0);
+addShape(gliderGun, 0, 0);
 
 
 var iv = setInterval(function () {
