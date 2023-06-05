@@ -65,6 +65,30 @@ const growthPattern2 = [
     '0000000'
 ];
 
+function addShapeCenter(shape) {
+    let height = shape.length;
+    let width = shape[0].length;
+
+    let x = Math.floor(cols/2 - width/2);
+    let y = Math.floor(rows/2 - height/2);
+
+    addShape(shape, x, y);
+}
+
+function addShapeRandom(shape) {
+    let height = shape.length;
+    let width = shape[0].length;
+
+    let x = randomInt(cols - width - 1);
+    let y = randomInt(rows - height - 1);
+
+    addShape(shape, x, y);
+}
+
+function randomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
 function addShape(shape, bx, by) {
     if (shape.length > rows) return;
     // assume rows have same col length
@@ -194,6 +218,6 @@ function updateBoard() {
 
 //addShape(glider, 0, 0);
 //addShape(gliderGun, 0, 0);
-addShape(growthPattern2, 15, 15);
+addShapeCenter(growthPattern);
 
-module.exports = { updateState, updateBoard, addShape };
+module.exports = { updateState, updateBoard, addShape, addShapeCenter, addShapeRandom };

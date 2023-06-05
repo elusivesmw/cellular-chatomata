@@ -35,12 +35,22 @@ client.on('connect', function(connection) {
     });
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
+            
+            // ping
+            if (message.utf8Data === 'PING :tmi.twitch.tv\r\n') {
+                sendPong();
+            }
+
             wswrite("Received: '" + message.utf8Data + "'");
 
-            cellular.addShape(glider, 0, 0);
+            cellular.addShapeRandom(glider);
         }
     });
 
+    function sendPong() {
+        connection.sendUTF(`PONG :tmi.twitch.tv\r\n`);
+    }
+    
     function sendMessage(msg) {
         connection.sendUTF(`PRIVMSG #${channel} :${msg}`);
     }
