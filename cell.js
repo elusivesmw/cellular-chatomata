@@ -23,48 +23,6 @@ function setState(x, y, val) {
     board[y] = chars.join('');
 }
 
-// shapes
-const glider = [
-    '001',
-    '101',
-    '011'
-];
-
-const gliderGun = [
-    '00000000000000000000000000000000000000',
-    '00000000000000000000000001000000000000',
-    '00000000000000000000000101000000000000',
-    '00000000000001100000011000000000000110',
-    '00000000000010001000011000000000000110',
-    '01100000000100000100011000000000000000',
-    '01100000000100010110000101000000000000',
-    '00000000000100000100000001000000000000',
-    '00000000000010001000000000000000000000',
-    '00000000000001100000000000000000000000',
-    '00000000000000000000000000000000000000'
-];
-
-const growthPattern = [
-    '0000000000',
-    '0000000100',
-    '0000010110',
-    '0000010100',
-    '0000010000',
-    '0001000000',
-    '0101000000',
-    '0000000000'
-];
-
-const growthPattern2 = [
-    '0000000',
-    '0111010',
-    '0100000',
-    '0000110',
-    '0011010',
-    '0101010',
-    '0000000'
-];
-
 function addShapeCenter(shape) {
     let height = shape.length;
     let width = shape[0].length;
@@ -218,6 +176,6 @@ function updateBoard() {
 
 //addShape(glider, 0, 0);
 //addShape(gliderGun, 0, 0);
-addShapeCenter(growthPattern);
+//zaddShapeCenter(growthPattern);
 
-module.exports = { updateState, updateBoard, addShape, addShapeCenter, addShapeRandom };
+module.exports = { updateState, updateBoard, addShape, addShapeCenter, addShapeRandom, rows };
