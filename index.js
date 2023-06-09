@@ -1,14 +1,31 @@
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname + '/.env') });
+
 var charm = require('charm')();
 charm.pipe(process.stdout);
 charm.reset();
 const cellular = require('./cell.js');
 
-
 const WebSocketClient = require('websocket').client;
 const client = new WebSocketClient();
-const token = "";
-const username = "";
-const channel = "";
+
+
+if (process.argv.length > 2) {
+    var channel = process.argv[2];
+} else {
+    console.error("Arg 2 'channel' is required")
+    process.exit(1);
+}
+const username = process.env.TWITCH_USER_ACCOUNT;
+if (!username) {
+    console.error("Environment variable 'TWITCH_USER_ACCOUNT' is required")
+    process.exit(1);
+}
+const token = process.env.TWITCH_AUTH_TOKEN;
+if (!token) {
+    console.error("Environment variable 'TWITCH_AUTH_TOKEN' is required")
+    process.exit(1);
+}
 
 
 const growthPattern = [
