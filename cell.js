@@ -1,9 +1,7 @@
-var charm = require('charm')();
-charm.pipe(process.stdout);
-charm.reset();
+import chalk from 'chalk';
 
-             // dead   alive
-var colors = [ 'black', 'green' ];
+                // dead   alive
+var colors = [ chalk.black, chalk.red ];
 
 const rows = 40;
 const cols = 80;
@@ -159,23 +157,24 @@ function updateBoard() {
     // make the changes to the board
     for (let sc of stateChanges) {
         setState(sc.x, sc.y, sc.val);
+        
         // and draw
-        var color = colors[sc.val];
-        charm
-            .move(sc.x, sc.y)
-            //.background(color)
-            .foreground(color)
-            .write(sc.val.toString())
-        ;
-
-        charm.position(0, 0);
+        write(sc.x, sc.y, sc.val.toString());
         
     }
     stateChanges = [];
 }
 
+function write(x, y, val) {
+    if (process.stdout.isTTY) {
+        process.stdout.cursorTo(x, y);
+        process.stdout.write(colors[val](val));
+        process.stdout.cursorTo(0, 0);
+    }
+}
+
 //addShape(glider, 0, 0);
 //addShape(gliderGun, 0, 0);
-//zaddShapeCenter(growthPattern);
+//addShapeCenter(growthPattern);
 
-module.exports = { updateState, updateBoard, addShape, addShapeCenter, addShapeRandom, rows };
+export { updateState, updateBoard, addShape, addShapeCenter, addShapeRandom, rows };
